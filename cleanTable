@@ -1,0 +1,13 @@
+import pandas as pd
+class cleanTable:
+    def read():
+        table = pd.read_csv("C:\\Users\\aniru\\Downloads\\ICD-10 Empty.csv")
+        table = table.replace("", "")
+        table = table.dropna(how='all', axis = 1)
+        table.dropna(how = "all", inplace = True)
+        table = table.fillna("NA")
+        table = table.replace(r'^\s*$', "NA", regex=True)
+        table = table.replace("  ", "", regex=True)
+        print(table)
+        table.to_csv("C:\\Users\\aniru\\Downloads\\ICD-10 Changed.csv")
+    read()
