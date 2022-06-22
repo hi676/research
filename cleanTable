@@ -1,13 +1,108 @@
 import pandas as pd
-class cleanTable:
-    def read():
-        table = pd.read_csv("C:\\Users\\aniru\\Downloads\\ICD-10 Empty.csv")
-        table = table.replace("", "")
-        table = table.dropna(how='all', axis = 1)
-        table.dropna(how = "all", inplace = True)
-        table = table.fillna("NA")
-        table = table.replace(r'^\s*$', "NA", regex=True)
-        table = table.replace("  ", "", regex=True)
-        print(table)
-        table.to_csv("C:\\Users\\aniru\\Downloads\\ICD-10 Changed.csv")
-    read()
+
+
+class database:
+    # Clean ICD9 and ICD10 excel tables
+    icd9table = pd.read_csv(
+        "C:\\Users\\aniru\\VS Code Programs\\Research\\ICD9.csv")
+    icd9table = icd9table.replace("", "")
+    icd9table = icd9table.dropna(how='all', axis=1)
+    icd9table.dropna(how="all", inplace=True)
+    icd9table = icd9table.fillna("NA")
+    icd9table = icd9table.replace(r'^\s*$', "NA", regex=True)
+    icd9table = icd9table.replace("  ", "", regex=True)
+    icd9table.to_csv(
+        "C:\\Users\\aniru\\VS Code Programs\\Research\\icd9cleared.csv", encoding="utf-8-sig")
+
+    icd10table = pd.read_csv(
+        "C:\\Users\\aniru\\VS Code Programs\\Research\\ICD10.csv")
+    icd10table = icd10table.replace("", "")
+    icd10table = icd10table.dropna(how='all', axis=1)
+    icd10table.dropna(how="all", inplace=True)
+    icd10table = icd10table.fillna("NA")
+    icd10table = icd10table.replace(r'^\s*$', "NA", regex=True)
+    icd10table = icd10table.replace("  ", "", regex=True)
+    icd10table.to_csv(
+        "C:\\Users\\aniru\\VS Code Programs\\Research\\icd10cleared.csv", encoding="utf-8-sig")
+
+    #Query to get values for acmg_temp_gene_disease_icd9
+    query = ""
+    for row in range(len(icd9table.index)):
+        if(icd9table.iloc[row, 2] == "NA"):
+            query += "('" + icd9table.iloc[row, 0] + "', '"
+            if("'" in icd9table.iloc[row, 1]):
+                query += icd9table.iloc[row, 1][:icd9table.iloc[row, 1].find(
+                    "'")] + "'" + icd9table.iloc[row, 1][icd9table.iloc[row, 1].find("'"):]
+            else:
+                query += icd9table.iloc[row, 1]
+            query += "', 'NA'), "
+        else:
+            for col in range(len(icd9table.columns)-2):
+                if(icd9table.iloc[row, col+2] != "NA"):
+                    query += "('" + icd9table.iloc[row, 0] + "', '"
+                    if("'" in icd9table.iloc[row, 1]):
+                        query += icd9table.iloc[row, 1][:icd9table.iloc[row, 1].find(
+                            "'")] + "'" + icd9table.iloc[row, 1][icd9table.iloc[row, 1].find("'"):]
+                    else:
+                        query += icd9table.iloc[row, 1]
+                    query += "', '" + str(icd9table.iloc[row, col+2]).rstrip() + "'), "
+    query = query[:-2]
+    acmg_temp_gene_disease_icd9_text_file = open(
+        "acmg_temp_gene_disease_icd9.txt", "w")
+    acmg_temp_gene_disease_icd9_text_file.write(query)
+    acmg_temp_gene_disease_icd9_text_file.close()
+
+    # Query to get values for acmg_temp_gene_disease_icd10
+    query = ""
+    for row in range(len(icd10table.index)):
+        if(icd10table.iloc[row, 2] == "NA"):
+            query += "('" + icd10table.iloc[row, 0] + "', '"
+            if("'" in icd10table.iloc[row, 1]):
+                query += icd10table.iloc[row, 1][:icd10table.iloc[row, 1].find(
+                    "'")] + "'" + icd10table.iloc[row, 1][icd10table.iloc[row, 1].find("'"):]
+            else:
+                query += icd10table.iloc[row, 1]
+            query += "', 'NA'), "
+        else:
+            for col in range(len(icd10table.columns)-2):
+                if(icd10table.iloc[row, col+2] != "NA"):
+                    query += "('" + icd10table.iloc[row, 0] + "', '"
+                    if("'" in icd10table.iloc[row, 1]):
+                        query += icd10table.iloc[row, 1][:icd10table.iloc[row, 1].find(
+                            "'")] + "'" + icd10table.iloc[row, 1][icd10table.iloc[row, 1].find("'"):]
+                    else:
+                        query += icd10table.iloc[row, 1]
+                    query += "', '" + \
+                        str(icd10table.iloc[row, col+2]).rstrip() + "'), "
+    query = query[:-2]
+    acmg_temp_gene_disease_icd10_text_file = open(
+        "acmg_temp_gene_disease_icd10.txt", "w")
+    acmg_temp_gene_disease_icd10_text_file.write(query)
+    acmg_temp_gene_disease_icd10_text_file.close()
+
+    #query = ""
+    #for row in range(len(icd9table.index)):
+    #    query += "('" + icd9table.iloc[row, 0] + "', '"
+    #
+    #    query += "')"
+    # Query to get values for acmg_temp_gene_disease_icd10
+
+    # Query to insert ICD9 to ICD10 conversions into table
+    query = ""
+    values = []
+    icd10 = []
+    for row in range(len(icd10table.index)):
+        for col in range(len(icd10table.columns)-2):
+            if icd10table.iloc[row, col+2] != "NA" and str(icd10table.iloc[row, col+2]).strip() not in icd10:
+                icd10.append(str(icd10table.iloc[row, col+2]).strip())
+                values.append(str(icd10table.iloc[row, col+2]).strip() + ":" + str(icd9table.iloc[row, col+2]).strip())
+    values = list(set(values))
+    for value in values:
+        query += "('" + value[:value.index(":")] + "', '" + value[value.index(":")+1:] + "'), "
+    #query = query[:-2]
+
+    # Write query into text file to copy easily
+    acmg_temp_gene_disease_icd10_text_file = open(
+        "acmg_temp_icd9_to_icd10.txt", "w")
+    acmg_temp_gene_disease_icd10_text_file.write(query)
+    acmg_temp_gene_disease_icd10_text_file.close()
